@@ -1,0 +1,5 @@
+{
+  "_comment": "Copy to supabase_config.json (git-ignored) and fill in. service_role_key is a full-access secret — keep it local, never commit or deploy it in client code.",
+  "url": "https://YOUR-PROJECT-ref.supabase.co",
+  "service_role_key": "eyJ...your service role key..."
+}

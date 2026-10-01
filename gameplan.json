@@ -1,0 +1,344 @@
+{
+  "_comment": "Single source of truth for Aristotle v4.0. Faithful encoding of 'Capital_Flywheel_Master_Operating_Plan' (controlling doc, Aug 8 2026). LIVE money, two Schwab IRAs, ADVISORY-ONLY. Scanner + reconciler both read this file. Edit values here.",
+  "version": "4.0",
+  "controlling_source": "Capital_Flywheel_Master_Operating_Plan.docx",
+  "source_hierarchy": [
+    "Master Operating Plan (controls daily execution + reconciliation)",
+    "One Page GamePlan (portfolio allocation + concentration)",
+    "Wheel Strategy Notes 080426 (trade mechanics)",
+    "Capital Flywheel guide (foundational CSP/CC mechanics)"
+  ],
+  "mode": "LIVE",
+  "advisory_only": true,
+  "as_of": "2026-08-08",
+  "accounts": [
+    {
+      "mask": "159",
+      "type": "Rollover/Traditional IRA",
+      "label": "rollover_ira"
+    },
+    {
+      "mask": "472",
+      "type": "Roth Contributory IRA",
+      "label": "roth"
+    }
+  ],
+  "note_accounts": "Performance is measured COMBINED. Risk/assignment/concentration is enforced PER-IRA. No margin, cash-secured only. Do NOT infer an IRA's net liq from its cash balance; use current account equity.",
+  "objective": {
+    "monthly_target_pct": 5,
+    "monthly_stretch_pct": 10,
+    "basis": "combined month-start net liquidation value, flow-adjusted",
+    "no_force": "The return target NEVER overrides market gate, trend gates, cash reserve, concentration limits, IV rules, earnings rules, or assignment comfort. Cash is a valid position.",
+    "return_math_note": "5% premium ROC closed at 50% target = ~2.5% of collateral; at 50% deployed = ~1.25% of portfolio. Hitting 5%/mo needs turnover + multiple cycles + CC income, not forced weak trades."
+  },
+  "capital": {
+    "total_reference": 194743.77,
+    "_note": "total_reference is fallback only. Reconciler overrides with live combined net-liq.",
+    "cash_reserve_target_pct": 0.5,
+    "cash_reserve_floor_pct": 0.3,
+    "deployed_normal_max_pct": 0.5,
+    "deployed_absolute_max_pct": 0.7,
+    "core_pct_of_deploy": 0.8,
+    "flex_pct_of_deploy": 0.2
+  },
+  "position_rules": {
+    "max_positions": 5,
+    "max_flex_positions": 2,
+    "max_single_ticker_combined_pct": 0.2,
+    "max_single_entry_pct": 0.1,
+    "max_single_ira_concentration_pct": 0.5,
+    "size_measure": "assignment value / capital at risk (strike x 100 x contracts)",
+    "scaled_concentration_note": "User decision 2026-08-08: per-ticker combined cap 10%->20% for ALL watchlist tickers (to lean into TQQQ/SOXL), but ONLY via multiple entries - any single entry <=10% (max_single_entry_pct); reach 20% only by scaling in over 2+ entries. Per-IRA cap 25%->50% so a full 20%-of-combined position may sit in one IRA. This intentionally overrides the Master Operating Plan's 10%/25% hard caps.",
+    "entry_scaling_pct": [
+      0.33,
+      0.33,
+      0.34
+    ],
+    "entry_scaling_note": "Intended size = max allowed by setup tier AND all caps (not automatically 10%). Never add because a position is losing.",
+    "no_immediate_reentry": "After a profitable close, do NOT auto re-enter the same extended ticker; wait for a fresh qualifying pullback."
+  },
+  "trade_params": {
+    "_note": "Machine-readable scalars for flash_check.py / scanner. Mirrors dte_modes + iv_overlay + strike_selection + exit_rules below.",
+    "dte_target_min": 30,
+    "dte_target_max": 45,
+    "dte_scan_min": 25,
+    "target_return_pct": 0.05,
+    "profit_target_pct": 0.5,
+    "iv_floor_pct": 50,
+    "iv_danger_pct": 100,
+    "delta_min": 0.2,
+    "delta_max": 0.35,
+    "delta_target": 0.28,
+    "spread_max_pct_of_mid": 10,
+    "flash_dte_min": 7,
+    "flash_dte_max": 45,
+    "flash_top_n": 4,
+    "flash_note": "FLASH CHECK shows top N OTM ~delta_target puts across flash_dte_min..max, ranked by capital efficiency (ROC/day) so short-dated fast-turnover CSPs surface. Group favors <30 DTE."
+  },
+  "aggression_profile": {
+    "_comment": "User decision 2026-08-29: 'a bit more aggressive' = BALANCED. Aristotle's DEFAULT recommendations lean here. Does NOT override hard gates (QQQ / trend / IV / earnings / concentration / reserve floor). Cash remains a valid position; the 5% is a target, not a mandate. Purpose: capture MORE qualified setups + dial premium deliberately, never force weak trades.",
+    "profile": "balanced",
+    "deploy_target_pct": 0.6,
+    "deploy_target_note": "Radar nudges toward ~60% deployed of combined net liq WHEN qualified setups exist. Hard ceiling stays deployed_absolute_max_pct (0.70); reserve floor stays cash_reserve_floor_pct (0.30).",
+    "monthly_return_target_pct": 0.05,
+    "assignment_mode": {
+      "enabled": true,
+      "delta_min": 0.3,
+      "delta_max": 0.4,
+      "requires_strong_trend": true,
+      "requires_strike_at_or_below_support": true,
+      "note": "Higher-premium, assignment-acceptable strikes surface ONLY when daily AND weekly trend are strong AND the strike sits at/below computed support (would-be assignment = a good entry relative to the trend). Otherwise fall back to income delta_target."
+    },
+    "layering": {
+      "enabled": true,
+      "min_pullback_pct": -1.5,
+      "cloud_hold_qualifies": true,
+      "respect_entry_ladder": true,
+      "note": "Surfaces add-a-tranche opportunities on qualified uptrend names at smaller pullbacks (>= -1.5%) or a hold of the fast/medium cloud, provided single-ticker headroom remains and each single entry stays <= max_single_entry_pct."
+    },
+    "strike_spectrum_deltas": [
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4
+    ],
+    "support_lookback_days": 20
+  },
+  "execution": {
+    "_comment": "GATED LIVE EXECUTION (separate entity from the read-only advisory). Master safety switch: enabled_live MUST be true or execute.py refuses to submit (dry-run always allowed). Every live order also needs a matching confirm token + passes re-validation at submit time. User places the first live order; Aristotle never submits autonomously.",
+    "enabled_live": false,
+    "max_contracts_per_order": 5,
+    "limit_only": true,
+    "entry_duration": "DAY",
+    "auto_btc_50_gtc": true,
+    "require_confirm_token": true,
+    "require_pin_for_live": true,
+    "_pin_note": "When true, every --live submit ALSO needs a human PIN (set once via `python execute.py set-pin`; stored key-stretched in git-ignored execution_auth.json). Desk: you're prompted for it (no shell history). Phone: you reply it to Aristotle over Telegram and the agent passes it once. The PIN is what stops the agent self-firing without your live participation. NOT airtight vs a compromised same-machine agent (nothing on one box is) but bounds risk to your live, per-order approval + the code gates."
+  },
+  "watchlists": {
+    "core": [
+      "TQQQ",
+      "SOXL",
+      "QQQ",
+      "SMH",
+      "SPY"
+    ],
+    "flex": [
+      "AMZU",
+      "METU",
+      "GGLL",
+      "NVDL",
+      "NVDA",
+      "ETHU"
+    ],
+    "review": "weekly; a ticker that loses qualification stays manageable as an existing position but is removed from new-entry eligibility until it re-qualifies."
+  },
+  "qqq_gate": {
+    "green": "2+ QQQ daily clouds bullish AND no abnormal selling volume -> proceed",
+    "hold": "2+ QQQ daily clouds bearish OR decline on volume > 20-day avg -> NO new CSPs, manage/reduce",
+    "watch": "mixed/transitioning -> wait; weekly is senior",
+    "override": "NO TRADE always overrides tactical cash deployment. Excess cash is never permission to trade through a QQQ red flag."
+  },
+  "ticker_trend_gate": {
+    "daily_min_score": 2,
+    "weekly_min_score": 2,
+    "weekly_is_senior": true,
+    "rule": "Both daily AND weekly must be >=2/3 bullish. If daily and weekly disagree, weekly wins -> no new trade.",
+    "double_red_cloud_exit": "2 weekly clouds turning bearish = mandatory exit signal for long-biased positions."
+  },
+  "entry_ladder": [
+    {
+      "tier": "A+",
+      "daily_move_pct": "<= -5",
+      "daily_rsi": "< 45",
+      "universe": "Core first; Flex only if exceptional",
+      "typical_size": "up to 10% Core; Flex smaller"
+    },
+    {
+      "tier": "A",
+      "daily_move_pct": "-3 to -5",
+      "daily_rsi": "<= 55",
+      "universe": "Core; selective Flex",
+      "typical_size": "5-7.5%"
+    },
+    {
+      "tier": "B",
+      "daily_move_pct": "-1 to -3",
+      "daily_rsi": "< 60",
+      "universe": "Core only (unlocked when cash > 70%)",
+      "typical_size": "~5%, never > 10%"
+    },
+    {
+      "tier": "NO_TRADE",
+      "daily_move_pct": "green / inadequate pullback",
+      "daily_rsi": "extended",
+      "universe": "none",
+      "typical_size": "0%"
+    }
+  ],
+  "intraday_pullback": {
+    "_comment": "TACTICAL_INTRADAY mode — Rev 1.4. Overrides ONLY the NO_TRADE (green day) tier. All hard gates remain controlling.",
+    "enabled": true,
+    "override_scope": "NO_TRADE only — does NOT override QQQ, trend, IV, liquidity, earnings, or sizing hard-gate failures",
+    "timeframes": [
+      "60m",
+      "30m"
+    ],
+    "preferred_timeframe": "60m",
+    "grade": "TACTICAL_INTRADAY",
+    "core_tickers_only": [
+      "TQQQ",
+      "SOXL",
+      "QQQ",
+      "SMH",
+      "SPY"
+    ],
+    "min_pullback_pct": 1.0,
+    "requires_green_day": true,
+    "completed_candles_only": true,
+    "pullback_from": "session_high",
+    "cash_state_eligible": [
+      "very cash-heavy",
+      "target/moderate"
+    ],
+    "cash_state_ineligible": [
+      "aggressively deployed",
+      "below hard reserve"
+    ],
+    "max_single_entry_pct": 0.05,
+    "max_ticker_combined_override_pct": 0.3,
+    "single_tranche_only": true,
+    "no_immediate_reentry_hours": 24,
+    "dte_preference": "tactical_weekly (7-15 DTE); standard flywheel (25-45 DTE) acceptable if weekly mode has no liquid strikes",
+    "all_other_gates_unchanged": "10% ticker / 25% IRA / IV floor+danger / liquidity / QQQ gate / trend gates / assignment comfort / exit-order discipline"
+  },
+  "iv_overlay": {
+    "floor_pct": 50,
+    "zones": [
+      {
+        "range": "<50",
+        "status": "insufficient premium",
+        "size": "0% - no trade"
+      },
+      {
+        "range": "50-70",
+        "status": "preferred zone",
+        "size": "normal setup-based sizing"
+      },
+      {
+        "range": "70-100",
+        "status": "elevated risk",
+        "size": "<= 5% new position, high-quality setup only"
+      },
+      {
+        "range": ">100",
+        "status": "premium trap",
+        "size": "0% - no trade"
+      }
+    ]
+  },
+  "cash_state_ladder": [
+    {
+      "combined_cash_pct": ">70",
+      "state": "very cash-heavy",
+      "permission": "A+, A, and qualified B weekly setups"
+    },
+    {
+      "combined_cash_pct": "50-70",
+      "state": "target/moderate",
+      "permission": "A+ and A setups (normal operation)"
+    },
+    {
+      "combined_cash_pct": "30-50",
+      "state": "aggressively deployed",
+      "permission": "A+ only; additions must be exceptional"
+    },
+    {
+      "combined_cash_pct": "<30",
+      "state": "below hard reserve",
+      "permission": "NO new entries; close winners / rebuild cash"
+    }
+  ],
+  "dte_modes": {
+    "tactical_weekly": {
+      "dte": "7-15",
+      "roc": "~1% @7DTE, ~2-2.5% @14DTE",
+      "when": "B setups, cash-nimble"
+    },
+    "standard_flywheel": {
+      "dte": "25-45",
+      "roc": "~3-5%+ initial ROC, ~5% @~30-35DTE benchmark",
+      "when": "A/A+ core engine (default)"
+    },
+    "extended_management": {
+      "dte": ">45 up to ~90",
+      "roc": "higher required",
+      "when": "rolling/repair, rare deliberate longer setup"
+    }
+  },
+  "strike_selection": {
+    "start": "OTM at a price where assignment is acceptable",
+    "prefer": "strikes below meaningful support/pullback structure",
+    "delta_range": "0.20-0.35 (0.20-0.30 preferred for Core income)",
+    "delta_is_secondary": true,
+    "do_not_force": "If the only strike hitting the return target needs bad delta/weak support/uncomfortable assignment -> WATCH/NO TRADE."
+  },
+  "order_discipline": {
+    "entry": "SELL TO OPEN put, LIMIT near mid, Day TIF",
+    "never_market_orders": true,
+    "spread_max_pct_of_mid": 10,
+    "avoid_windows": "first ~15 min and last ~5 min unless urgent risk mgmt",
+    "post_fill_exit": "immediately place BUY TO CLOSE at 50% of entry credit, GTC"
+  },
+  "exit_rules": {
+    "profit_gtc_pct": 0.5,
+    "fast_profit": "25-40% of max profit in 1-2 days may be harvested early when turnover is superior or underlying extended",
+    "flat_reassess_days": "7-10",
+    "time_exit_dte": 21,
+    "emergency_drop_pct": -15,
+    "same_ticker_reentry_triggers": "~5% single-day decline OR ~15% decline over 7 days (else only B tactical)"
+  },
+  "covered_calls": {
+    "modes": {
+      "defensive": {
+        "dte": "7-14",
+        "strike": "at/above adjusted basis when practical"
+      },
+      "standard_churn": {
+        "dte": "15-30",
+        "strike": "~5-10% above price or near desired exit"
+      },
+      "trend_expansion": {
+        "dte": "minimal/very wide OTM",
+        "strike": "do not cap major upside too early"
+      }
+    },
+    "basis_protection": "Do NOT sell a covered call materially below adjusted cost basis unless the explicit plan is to exit shares at a realized loss.",
+    "cost_basis_formula": "strike - put premium received, then further reduced by realized covered-call premium",
+    "post_fill_exit": "50% GTC Buy to Close immediately after fill",
+    "share_gain_target_pct": 10,
+    "leveraged_share_gain_target_pct": "10-20% during strong momentum, reviewed frequently"
+  },
+  "earnings_rule": "No new individual-stock CSP if earnings occurs before expiration. NVDA is a single stock -> its earnings apply directly. Single-stock leveraged ETFs (AMZU=AMZN, METU=META, GGLL=GOOGL, NVDL=NVDA): check the UNDERLYING mega-cap earnings even though the ETF does not report. ETHU tracks Ether (no earnings) but is very high-vol -> treat IV danger zone strictly.",
+  "correction_protocol": {
+    "note": "Signals raise confidence after a selloff; they do NOT suspend hard risk limits (10% ticker / 25% IRA / 30% cash / 70% deployment).",
+    "signals": [
+      "liquidity sweep of a low with rejection",
+      "VIX > 30",
+      "weekly RSI near 30 on QQQ/SPY",
+      "selling volume dries up 2-3 sessions",
+      "cloud flip bullish (weekly confirmation strongest)"
+    ]
+  },
+  "alerts": {
+    "fill_detected": true,
+    "position_hit_50pct": true,
+    "gtc_missing_on_short_option": true,
+    "cloud_flip_red_on_holding": true,
+    "underlying_drop_pct": -10,
+    "earnings_inside_expiry": true,
+    "guardrail_breach": true,
+    "qqq_gate_flip": true
+  }
+}

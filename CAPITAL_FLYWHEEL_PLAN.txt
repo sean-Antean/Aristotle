@@ -1,0 +1,473 @@
+# Aristotle Capital Flywheel v3.0
+# Complete Trading Plan & Strategy Guide
+# =======================================
+
+Document Version: 3.0
+Date: June 5, 2026
+Strategy: Cash-Secured Put (CSP) System
+Account: thinkorswim paperMoney ($150,000 virtual)
+Platform: Mobile-first (thinkorswim + TradingView)
+
+---
+
+## IMPORTANT: THREE-UNIVERSE STRUCTURE
+
+The Capital Flywheel scanner now operates with **three separate universes**.
+
+**Retired:** The original 34-ticker universe (tier1/tier2/tier3) was a debugging/testing universe only.
+
+**Active:** The expanded leveraged universe is now the primary Capital Flywheel paper-testing universe.
+
+---
+
+## TABLE OF CONTENTS
+
+1. Strategy Overview
+2. Three-Universes
+3. Entry Criteria (ALL Must Be Met)
+4. Trade Parameters
+5. Position Sizing
+6. Daily Workflow
+7. Risk Management Rules
+8. Exit Strategy
+9. Assignment Protocol (The Wheel)
+10. Aristotle Commands
+11. Schwab API Integration
+12. Automation Schedule
+13. Performance Tracking
+14. Troubleshooting
+
+---
+
+## 1. STRATEGY OVERVIEW
+
+The Capital Flywheel is a cash-secured put selling system designed to:
+- Generate 2-7% monthly returns per position
+- Close trades early at 50% profit
+- Recycle capital rapidly to maximize opportunities
+- Transition to covered calls if assigned (The Wheel)
+
+Core Philosophy:
+- Sell puts on quality tickers during temporary pullbacks
+- Collect premium as income
+- Close early, never wait for expiration
+- Stay in cash between opportunities
+
+**v3.0 Update:** Leveraged products are now central to the strategy and are evaluated in a separate paper-only leveraged universe.
+
+---
+
+## 2. THREE-UNIVERSES
+
+### A. Primary Capital Flywheel Leveraged Universe
+**Tickers:** SOXL, TNA, TQQQ, GGLL, AMZU, MSFU, NVDL, TSLL, BITX
+
+These tickers are **central to the Capital Flywheel strategy** and must not be rejected solely because they are leveraged. They are evaluated in a separate paper-only leveraged universe.
+
+### B. Expanded Leveraged Sandbox Universe
+**Tickers:** QLD, UPRO, SSO, URTY, UDOW, TECL, FAS, DPST, LABU, NAIL, ERX, CURE, WEBL, BITU, CONL, AAPU, METU, AMDL, NVDU
+
+Secondary leveraged candidates for expanded paper testing.
+
+### C. Core / Conservative Universe
+**Tickers:** NVDA, AMD, AMZN, GOOGL, MSFT, META, AAPL, ORCL, JPM, COST, LLY, UNH, SPY, QQQ, IWM, SMH, XLK, XLE, XLF, XLV, XLP, XLI, XLU, XLY, XBI, ARKK
+
+Standard large-cap stocks and ETFs. Separate secondary section.
+
+---
+
+## 3. ENTRY CRITERIA (ALL MUST BE MET)
+
+Before ANY trade, confirm ALL of the following:
+
+[ ] Weekly EMA Cloud: 2/3 or 3/3 bullish (Fast: EMA 5>12, Medium: EMA 34>50, Slow: EMA 72>89)
+[ ] Down Day: Stock is down -1% to -7% (ideal: -2% to -5%)
+[ ] IV: Valid and available
+[ ] Option Liquidity: Spread <= 10%, OI >= 25, Vol >= 10
+[ ] Earnings: Not before expiration
+[ ] Portfolio: Position size within tier limits
+[ ] Cash: 50% minimum cash reserve maintained
+[ ] Market Regime: MARKET_OPEN for actionable trade review
+
+If ANY criterion is not met -> NO TRADE
+
+---
+
+## 4. TRADE PARAMETERS
+
+| Parameter | Setting | Notes |
+|-----------|---------|-------|
+| Strategy | Cash-Secured Put (CSP) | No margin, no naked puts |
+| DTE Target | 25-35 days | Monthly churn style |
+| Return Target | 2-7% monthly | Per position |
+| Profit Exit | 50% of premium | GTC buy-to-close order |
+| Max Position | See Position Sizing | Varies by universe |
+| Min Cash Reserve | 50% | $75,000 always available |
+
+Strike Selection:
+- Target: ~2-7% return on collateral
+- Typically: Slightly OTM (2-5% below current)
+- If IV high: Can go further OTM for safety
+
+---
+
+## 5. POSITION SIZING ($150,000 Account)
+
+### Core Universe
+| Tier | Max Collateral | Label |
+|------|---------------|-------|
+| STANDARD | <= $15,000 (10%) | CORE_STANDARD |
+| HIGH-CONVICTION | <= $30,000 (20%) | CORE_HIGH_CONVICTION |
+| OVERSIZED | <= $37,500 (25%) | CORE_OVERSIZED — analysis only |
+| REJECT | > $37,500 | CORE_REJECT |
+
+### Leveraged Universe
+| Tier | Max Collateral | Label |
+|------|---------------|-------|
+| STANDARD | <= $15,000 (10%) | LEVERAGED_STANDARD |
+| AGGRESSIVE | <= $22,500 (15%) | LEVERAGED_AGGRESSIVE |
+| OVERSIZED | $22,501–$37,500 (25%) | LEVERAGED_OVERSIZED — analysis only |
+| REJECT | > $37,500 | LEVERAGED_REJECT |
+
+**Total exposure limits:**
+- Max total open short-put collateral: 50% of account ($75,000)
+- Minimum cash reserve: 50% of account ($75,000)
+- Max total leveraged exposure: 25% of account ($37,500)
+- Max single leveraged ticker: 15% of account ($22,500)
+
+---
+
+## 6. DAILY WORKFLOW
+
+### Morning Scan (9:45 AM ET) — AUTOMATED
+Aristotle runs the scanner automatically:
+1. Scans all three universes
+2. Calculates weekly EMA cloud scores
+3. Filters by cloud score, pullback, IV, liquidity
+4. Generates report with six sections
+5. Does NOT place trades
+
+You review the report and decide:
+- Which candidates to analyze further
+- Which to skip
+- Whether market conditions support trading
+
+### Pre-Trade Analysis (You Initiate)
+You: "Aristotle analyze [TICKER]"
+
+Aristotle responds with structured recommendation
+
+You provide:
+1. Option chain screenshot (30-35 DTE)
+2. TradingView weekly chart with EMA clouds
+3. Current portfolio allocation
+
+Aristotle delivers:
+- Strike recommendation
+- Premium target
+- Return calculation
+- Breakeven analysis
+- Setup classification
+
+### DECISION POINT
+You reply:
+- "approve" -> Execute in thinkorswim
+- "modify [changes]" -> Adjust parameters
+- "reject" -> Wait for next setup
+
+### EXECUTION
+1. Open thinkorswim paperMoney
+2. Navigate to Trade tab
+3. Select ticker options
+4. Sell Put at recommended strike
+5. Set GTC buy-to-close at 50% profit
+6. Screenshot filled order
+7. Send to Aristotle for logging
+
+### POSITION MANAGEMENT
+Daily checks (automated):
+- Progress to 50% profit target
+- Alert if approaching expiry (7 days)
+- Alert if underlying drops >10%
+
+You decide:
+- Hold (if profitable, not at target)
+- Close (if 50% target reached)
+- Roll (if needing more time)
+- Let assign (if ITM at expiry)
+
+---
+
+## 7. RISK MANAGEMENT RULES
+
+### HARD RULES (Never Break)
+1. NO margin usage (cash-secured only)
+2. NO position exceeding tier limits
+3. NO earnings week trades
+4. NO trading if cloud score < 2/3
+5. ALWAYS maintain 50% cash reserve
+6. NO autonomous trading — human approval required
+
+### SOFT RULES (Flexibility Allowed)
+1. Can close before 50% if opportunity arises
+2. Can hold through minor dips if thesis intact
+3. Can adjust strike if better risk/reward found
+
+### STOP TRADING IF
+- 3 consecutive losses
+- Portfolio down >10% from peak
+- Market in confirmed downtrend (all clouds red)
+- Personal stress/emotional trading detected
+
+---
+
+## 8. EXIT STRATEGY
+
+### PRIMARY EXIT (Preferred)
+- GTC buy-to-close at 50% of entry premium
+- Example: Sell put for $2.00 -> GTC to buy at $1.00
+- Typically hits in 1-5 days
+- Lock in profit, recycle capital
+
+### SECONDARY EXIT (If not at 50%)
+- Close at 21 DTE regardless of profit
+- Avoid time decay acceleration
+- Free up capital for new trades
+
+### TERTIARY EXIT (Emergency)
+- If underlying drops >15%
+- Evaluate: roll down/out or take assignment
+- Never realize loss if avoidable
+
+---
+
+## 9. ASSIGNMENT PROTOCOL (THE WHEEL)
+
+If Put Expires ITM (You Get Assigned Stock):
+
+### STEP 1: Decide
+- Do you want to own this stock? -> YES -> Keep it
+- Do you NOT want to own it? -> Sell more puts to lower cost basis
+
+### STEP 2: If Keeping (Wheel Phase 2)
+- Sell Covered Calls 15-20 DTE
+- Target: 1-2% monthly return
+- Strike: Slightly OTM
+- Same 50% profit exit rule
+
+### STEP 3: If Called Away
+- Stock sold at strike price
+- Keep all premiums collected
+- Return to selling CSPs
+
+### STEP 4: Cost Basis Tracking
+- Track adjusted cost basis (strike - all premiums)
+- Example: Assigned at $43, collected $2 premium
+- True cost basis: $41 per share
+
+---
+
+## 10. ARISTOTLE COMMANDS
+
+| Command | What Aristotle Does |
+|---------|---------------------|
+| "Aristotle scan" | Trigger daily scan |
+| "Aristotle analyze [TICKER]" | Deep dive analysis |
+| "Aristotle status" | Full portfolio summary |
+| "Aristotle assigned [TICKER]" | Transition to wheel mode |
+| "Aristotle roll [TICKER]" | Roll recommendation |
+| "Aristotle close [TICKER]" | Close recommendation |
+| "Aristotle help" | Command reference |
+
+---
+
+## 11. SCHWAB API INTEGRATION
+
+Purpose: Real-time data feed for Aristotle
+Status: Read-only (no trading)
+
+Setup Steps:
+1. Run: python schwab_bridge.py --setup
+2. Authenticate: python schwab_auth.py
+3. Test: python schwab_bridge.py --quotes [TICKER]
+
+What It Provides:
+- Real-time quotes
+- Option chain data (IV, premiums)
+- Weekly historical data for EMA cloud calculation
+- Faster analysis
+- More accurate calculations
+
+What You Still Do Manually:
+- Execute trades in thinkorswim
+- Screenshot confirmations
+- Approve all decisions
+
+---
+
+## 12. AUTOMATION SCHEDULE
+
+Market Days (Monday-Friday):
+
+| Time (ET) | Alert | Action |
+|-----------|-------|--------|
+| 9:45 AM | Daily Scan | Automated scan across all universes |
+
+You can trigger manually anytime:
+- "Aristotle scan" -> Instant scan
+- "Aristotle analyze [TICKER]" -> On-demand analysis
+
+---
+
+## 13. PERFORMANCE TRACKING
+
+Monthly Metrics to Track:
+
+| Metric | Target | How to Calculate |
+|--------|--------|------------------|
+| # of Trades | 8-12 | Count closed positions |
+| Win Rate | >80% | Wins / Total trades |
+| Avg Return/Trade | 3-5% | Premium / Collateral |
+| Premium Collected | $5K-10K | Sum of all premiums |
+| Max Drawdown | <10% | Peak to trough decline |
+| Cash Utilization | 40-60% | Invested / Available |
+
+Monthly Review Questions:
+1. Did I follow ALL entry criteria?
+2. Did I close at 50% profit consistently?
+3. Did any assignments occur? Why?
+4. What can I improve next month?
+
+---
+
+## 14. TROUBLESHOOTING
+
+### PROBLEM: No down-day candidates
+SOLUTION: Wait. Cash is a position. Better setups tomorrow.
+
+### PROBLEM: Premium too low (<2%)
+SOLUTION: Skip trade. IV too low, not enough reward.
+
+### PROBLEM: Assigned stock I don't want
+SOLUTION: Sell more puts at lower strike to reduce cost basis. Or sell covered calls.
+
+### PROBLEM: Trade going against me (down >10%)
+SOLUTION: Evaluate rolling out in time and down in strike. Never realize loss if avoidable.
+
+### PROBLEM: Missed 50% exit, now at 30%
+SOLUTION: Close anyway. Profit is profit. Don't get greedy.
+
+### PROBLEM: EMA clouds mixed (1 bullish, 2 bearish)
+SOLUTION: No trade. Wait for clear trend.
+
+### PROBLEM: thinkorswim app slow/crashing
+SOLUTION: Use desktop version. Or call Schwab to place order.
+
+---
+
+## APPENDIX A: EMA CLOUD SETUP
+
+TradingView Indicator:
+1. Open TradingView (mobile or desktop)
+2. Add indicator: "EMA Cloud"
+3. Settings:
+   - Fast: EMA 5, 12
+   - Medium: EMA 34, 50
+   - Slow: EMA 72, 89
+4. Timeframe: Weekly (for trend)
+5. Look for: 2 of 3 clouds bullish = eligible
+
+---
+
+## APPENDIX B: OPTION CHAIN SCREENSHOT
+
+thinkorswim Mobile:
+1. Select ticker from watchlist
+2. Tap "Options" tab
+3. Select expiration: 25-35 DTE
+4. Scroll to target strike
+5. Screenshot showing:
+   - Bid/Ask for put option
+   - IV (if visible)
+   - Delta, Theta (if visible)
+
+---
+
+## APPENDIX C: GTC ORDER SETUP
+
+thinkorswim Mobile:
+1. After selling put, go to Orders
+2. Find your open short put
+3. Tap "Create Closing Order"
+4. Set limit price: 50% of premium received
+5. Set TIF: GTC (Good Till Canceled)
+6. Submit order
+7. Screenshot confirmation
+
+---
+
+## 15. INTRADAY TACTICAL PULLBACK MODE (Rev 1.4)
+
+**Purpose:** Capture CSP entries on strong green days when a genuine intraday pullback occurs, without chasing at daily highs.
+
+**Override Scope:** This mode may override **ONLY** the `NO_TRADE` (green day) tier. It does NOT override any hard gate failure (QQQ < 2/3, weekly clouds < 2/3, IV outside bounds, liquidity failure, earnings conflict, or sizing cap breach).
+
+**Prerequisites (ALL must pass):**
+1. Daily/Weekly Trend: ≥2/3 bullish daily clouds AND ≥2/3 bullish weekly clouds
+2. QQQ Gate: GREEN (≥2/3 daily clouds bullish)
+3. Universe: Core tickers only — TQQQ, SOXL, QQQ, SMH, SPY
+4. Day Color: Underlying is green on the day (daily change > 0%)
+5. Cash State: Combined cash ≥ 50% (target/moderate or higher)
+6. No Immediate Re-entry: 24-hour block after profitable close on same ticker
+
+**Intraday Pullback Definition:**
+- Preferred: 60-minute candle completed RED (close < open) with pullback ≥ 1% from session high
+- Secondary: 30-minute candle completed RED with pullback ≥ 1% from session high
+- Completed candles only — no in-progress candles
+- Pullback % = (session_high - current_price) / session_high × 100
+
+**Grade & Sizing:**
+- Grade: TACTICAL_INTRADAY-60m or TACTICAL_INTRADAY-30m
+- Max Single Entry: 5% of combined net liq (half of normal 10% cap)
+- Single tranche only — no multiple contracts
+- All other gates (10% ticker, 25% IRA, IV, liquidity, exit-order) remain controlling
+
+**Exit Rules:**
+- Same 50% GTC profit target
+- Same 21-DTE time exit
+- Same emergency protocols
+
+---
+
+## VERSION HISTORY
+
+- v1.0: Original guided wheel strategy
+- v2.0: Capital Flywheel adaptation (May 2026)
+  - Added leveraged ETF focus
+  - Added EMA cloud criteria
+  - Added 50% profit target rule
+- v3.0: Three-universe structure (June 2026)
+  - Added Primary Leveraged Universe
+  - Added Expanded Leveraged Sandbox
+  - Added Core Conservative Universe
+  - Removed auto-reject for leveraged products
+  - Updated account value to $150,000
+  - Updated position sizing
+  - Restructured report format
+  - Added expanded entry criteria (cash reserve, market regime)
+  - Added stop trading triggers
+- v3.1 / Rev 1.4: Intraday Tactical Pullback Mode (August 2026)
+  - Added TACTICAL_INTRADAY grade for green-day intraday pullbacks
+  - 60m preferred, 30m secondary, completed candles only
+  - 5% max entry, single tranche, core tickers only
+  - Cash state eligibility: ≥50% cash required
+  - All hard gates remain controlling; override applies only to NO_TRADE tier
+
+---
+
+END OF DOCUMENT
+
+For questions or support, contact Aristotle via OpenClaw UI or Telegram.
+
+- Aristotle Capital Flywheel System v3.0
+- Generated: June 5, 2026

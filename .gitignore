@@ -1,0 +1,45 @@
+# SECRETS — NEVER COMMIT THESE
+# (patterns must be alone on the line; inline # comments do NOT work in gitignore)
+schwab_config.json
+schwab_tokens.json
+supabase_config.json
+telegram_config.json
+execution_auth.json
+vercel-recovery-codes.txt
+auth_code.txt
+_reauth*.py
+txns_*.json
+*.token
+*.secret
+.env
+.env.*
+# keep the env template (no real values)
+!.env.local.example
+
+# Generated / runtime (reproducible — no need to back up)
+__pycache__/
+*.pyc
+state/
+analysis/
+reports/
+*.log
+*.backup_*
+temp_*.py
+_temp_*.py
+
+# Large / redundant
+Aristotle.zip
+
+# Node / dashboard
+node_modules/
+dashboard/node_modules/
+dashboard/.next/
+dashboard/.vercel/
+dashboard/out/
+dashboard/next-env.d.ts
+*.tsbuildinfo
+
+# OS
+Thumbs.db
+.DS_Store
+last_reauth.txt
