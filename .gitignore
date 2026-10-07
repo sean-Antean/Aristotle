@@ -43,3 +43,4 @@ dashboard/next-env.d.ts
 Thumbs.db
 .DS_Store
 last_reauth.txt
+profit_watch_state.json
