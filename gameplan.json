@@ -45,6 +45,8 @@
     "max_positions": 5,
     "max_flex_positions": 2,
     "max_single_ticker_combined_pct": 0.2,
+    "ticker_combined_cap_overrides": {"SOXL": 0.3, "TQQQ": 0.4},
+    "ticker_override_note": "User decision 2026-10-07: SOXL combined cap 20%->30%, TQQQ 20%->40% (scaling in only; single entry still <= max_single_entry_pct). All other tickers stay at max_single_ticker_combined_pct.",
     "max_single_entry_pct": 0.1,
     "max_single_ira_concentration_pct": 0.5,
     "size_measure": "assignment value / capital at risk (strike x 100 x contracts)",
