@@ -76,6 +76,9 @@ h2 { font-size: 1.05rem; margin: 28px 0 12px; }
 .pill-do_now { background: color-mix(in srgb, var(--fail) 20%, transparent); color: var(--fail); }
 .pill-action { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .pill-watch { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+.pill-ok { background: color-mix(in srgb, var(--pass) 18%, transparent); color: var(--pass); }
+.regime { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.regime > div { flex: 1 1 260px; }
 
 .pace { margin-top: 16px; }
 .pace-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }

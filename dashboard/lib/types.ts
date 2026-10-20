@@ -81,6 +81,64 @@ export interface Pacing {
   as_of: string;
 }
 
+// pullback.py — gameplan.assignment_playbook + correction_protocol (2026-10-20)
+export interface PullbackDrawdown {
+  status: "OK" | "UNAVAILABLE";
+  price?: number;
+  high_52w?: number;
+  drawdown_pct?: number;
+  bucket?: "none" | "dip" | "correction" | "bear";
+  bucket_frequency?: string | null;
+  core_only?: boolean;
+}
+
+export interface MacroRegime {
+  status: "OK" | "UNAVAILABLE";
+  regime?: "CLEAR" | "WATCH" | "CAUTION";
+  fed_funds?: number;
+  fed_funds_12m_change?: number;
+  rate_rising?: boolean;
+  unemployment?: number;
+  unemployment_3m_vs_12m_low?: number;
+  unemployment_rising?: boolean;
+}
+
+export interface AssignmentCheck {
+  ticker: string;
+  itm_puts: string[];
+  shares_if_assigned: number;
+  cost_if_assigned: number;
+  ticker_exposure: number;
+  ticker_cap: number;
+  room_for_puts: number;
+  status: "LAYER_OK" | "NO_BOTTOM_LAYER" | "OVER_CAP" | "INCOME_FIRST_ONLY";
+}
+
+export interface CoveredCallTiming {
+  ticker: string;
+  account: string;
+  shares: number;
+  uncovered_shares: number;
+  path: "income_first" | "balanced" | "hold_for_upside";
+  action: "SELL_CALLS_NOW" | "WAIT" | "COVERED";
+  why: string;
+  price: number | null;
+  day_change_pct: number | null;
+  rsi_daily: number | null;
+  adjusted_basis: number | null;
+  basis_gap: number | null;
+  months_to_breakeven_at_10pct: number | null;
+}
+
+export interface Pullback {
+  status?: "UNAVAILABLE";
+  as_of?: string;
+  drawdown?: PullbackDrawdown;
+  macro?: MacroRegime;
+  assignment_check?: AssignmentCheck[];
+  covered_calls?: CoveredCallTiming[];
+}
+
 export interface SnapshotPayload {
   snapshot: {
     as_of: string;
@@ -97,6 +155,7 @@ export interface SnapshotPayload {
   action_items: ActionItem[];
   pacing?: Pacing;
   program_recovery?: ProgramRecovery;
+  pullback?: Pullback;
 }
 
 export interface SnapshotRow {

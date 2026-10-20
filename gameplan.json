@@ -57,7 +57,7 @@
       0.33,
       0.34
     ],
-    "entry_scaling_note": "Intended size = max allowed by setup tier AND all caps (not automatically 10%). Never add because a position is losing.",
+    "entry_scaling_note": "Intended size = max allowed by setup tier AND all caps (not automatically 10%). Add only as a PLANNED LAYER (see assignment_playbook.sandwich): on a qualifying A/A+ red day, within the ticker cap. Never add just because a position is losing.",
     "no_immediate_reentry": "After a profitable close, do NOT auto re-enter the same extended ticker; wait for a fresh qualifying pullback."
   },
   "trade_params": {
@@ -125,8 +125,10 @@
       "SOXL",
       "QQQ",
       "SMH",
-      "SPY"
+      "SPY",
+      "TNA"
     ],
+    "core_note": "User decision 2026-10-20: TNA (3x small caps) added to Core per the mentor's Pullback Program core list (TQQQ / SOXL / TNA).",
     "flex": [
       "AMZU",
       "METU",
@@ -323,6 +325,36 @@
     "share_gain_target_pct": 10,
     "leveraged_share_gain_target_pct": "10-20% during strong momentum, reviewed frequently"
   },
+  "assignment_playbook": {
+    "_comment": "User decision 2026-10-20: mentor's Sandwich Method (class notes 2026-10-19) + Pullback Program Mindset, adapted to Flywheel hard caps. Caps are never suspended.",
+    "paths": {
+      "income_first": {"goal": "income over everything; upside is a bonus", "call_timing": "sell the next session after assignment", "strike": "may be below adjusted basis ONLY because the explicit plan accepts exiting at a realized loss", "called_away_at_loss": "fine - back to selling puts sooner"},
+      "balanced": {"goal": "some upside, some income", "call_timing": "sell into pops: a green day of at least green_day_trigger_pct", "strike": "at/above adjusted basis", "called_away_at_loss": "acceptable on a strong run"},
+      "hold_for_upside": {"goal": "capture the recovery", "call_timing": "wait until daily RSI(14) >= hold_rsi_trigger", "strike": "at/above adjusted basis, wide OTM", "called_away_at_loss": "avoid - exit on your terms"}
+    },
+    "green_day_trigger_pct": 2.0,
+    "hold_rsi_trigger": 65,
+    "triggers_note": "green_day_trigger_pct and hold_rsi_trigger are Aristotle defaults (the mentor's notes give no numbers); adjust freely.",
+    "ticker_paths": {"TQQQ": "balanced", "SOXL": "hold_for_upside", "TNA": "balanced"},
+    "default_path": "balanced",
+    "decaying_or_inverse_income_first_only": ["SPCG", "DFEN"],
+    "decaying_note": "Inverse / daily-reset single-name funds decay while held: Income First only (sell calls immediately; called away at a loss is acceptable).",
+    "sandwich": {
+      "top": "covered calls on held shares, timed by the ticker's path",
+      "filling": "assigned shares; every premium lowers the adjusted basis",
+      "bottom": "cash-secured puts on the SAME ticker, only on A/A+ red days, only within the ticker cap",
+      "first_layer_max_fraction_of_ticker_cap": 0.34,
+      "sizing_rule": "An assignment must be a layer, not the whole sandwich: shares + remaining put commitments in the ticker must leave room under its cap for at least one more put layer."
+    },
+    "pre_assignment_check": "Reconcile flags any in-the-money put whose assignment would push the ticker past its cap or leave no room for a bottom layer.",
+    "basis_tracking": "Track adjusted basis vs price and the monthly basis reduction; mentor target ~5%/mo from puts + ~5%/mo from calls. Break-even is mental comfort; income is real."
+  },
+  "leaps_sleeve": {
+    "_comment": "User decision 2026-10-20: LEAPs live in a SEPARATE sleeve, never mixed into the CSP flywheel caps. Aristotle does not trade or stage LEAPs; this is a limit, not a strategy.",
+    "max_pct_of_combined_net_liq": 0.05,
+    "core_tickers_only": true,
+    "note": "Leverage on 3x funds is leverage on leverage. Counts toward the ticker's combined cap."
+  },
   "earnings_rule": "No new individual-stock CSP if earnings occurs before expiration. NVDA is a single stock -> its earnings apply directly. Single-stock leveraged ETFs (AMZU=AMZN, METU=META, GGLL=GOOGL, NVDL=NVDA): check the UNDERLYING mega-cap earnings even though the ETF does not report. ETHU tracks Ether (no earnings) but is very high-vol -> treat IV danger zone strictly.",
   "correction_protocol": {
     "note": "Signals raise confidence after a selloff; they do NOT suspend hard risk limits (10% ticker / 25% IRA / 30% cash / 70% deployment).",
@@ -332,7 +364,23 @@
       "weekly RSI near 30 on QQQ/SPY",
       "selling volume dries up 2-3 sessions",
       "cloud flip bullish (weekly confirmation strongest)"
-    ]
+    ],
+    "pullback_core_only": true,
+    "pullback_core_only_note": "User decision 2026-10-20 (mentor Pullback Program): when QQQ is in a pullback bucket, new entries are Core only (TQQQ / SOXL / TNA / QQQ / SMH / SPY); no new Flex or speculative single-name leveraged entries.",
+    "drawdown_buckets": [
+      {"name": "dip", "qqq_from_52w_high_pct": -5, "historical_frequency": "about 3 per year (S&P 500, approximate)"},
+      {"name": "correction", "qqq_from_52w_high_pct": -10, "historical_frequency": "about 1 per year (approximate)"},
+      {"name": "bear", "qqq_from_52w_high_pct": -20, "historical_frequency": "every few years, NOT yearly; a 3x fund falls roughly 55-60% in a 20% index drop"}
+    ],
+    "drawdown_note": "Buckets size how hard to lean in WITHIN caps; they never suspend caps. Frequencies corrected from the mentor page (which claimed ~1 bear per year).",
+    "macro_regime": {
+      "source": "FRED public CSV (no key): FEDFUNDS, UNRATE",
+      "rate_rising_rule": "effective fed funds rate up >= 0.75 pt over the last 12 months",
+      "unemployment_rising_rule": "3-month average unemployment >= 0.5 pt above its 12-month low (Sahm-style)",
+      "action_if_both": "CAUTION: structural risk per mentor; no new adds into pullbacks, manage/reduce",
+      "action_if_one": "WATCH: lean in less",
+      "action_if_none": "CLEAR: pullbacks fit the normal pattern"
+    }
   },
   "alerts": {
     "fill_detected": true,

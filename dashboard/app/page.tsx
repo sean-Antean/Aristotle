@@ -1,5 +1,5 @@
 import { getServerClient } from "@/lib/supabase";
-import type { SnapshotRow, Guardrail, Position, ActionItem, StockPosition } from "@/lib/types";
+import type { SnapshotRow, Guardrail, Position, ActionItem, StockPosition, Pullback } from "@/lib/types";
 import RefreshBar from "./RefreshBar";
 
 // On-demand only: read the latest snapshot fresh on each visit, never poll in the
@@ -31,6 +31,109 @@ const money = (n: number | null | undefined) =>
 
 function StatusDot({ status }: { status: Guardrail["status"] }) {
   return <span className={`dot dot-${status.toLowerCase()}`} title={status} />;
+}
+
+const STATUS_PILL: Record<string, string> = {
+  LAYER_OK: "pill-ok", NO_BOTTOM_LAYER: "pill-action", OVER_CAP: "pill-do_now", INCOME_FIRST_ONLY: "pill-watch",
+  SELL_CALLS_NOW: "pill-ok", WAIT: "pill-watch", COVERED: "pill-ok",
+  CLEAR: "pill-ok", WATCH: "pill-action", CAUTION: "pill-do_now",
+};
+const STATUS_TEXT: Record<string, string> = {
+  LAYER_OK: "Layer OK", NO_BOTTOM_LAYER: "No room to add", OVER_CAP: "Over cap", INCOME_FIRST_ONLY: "Income First only",
+  SELL_CALLS_NOW: "Sell calls now", WAIT: "Wait", COVERED: "Covered",
+};
+const PATH_TEXT: Record<string, string> = {
+  income_first: "Income First", balanced: "Balanced", hold_for_upside: "Hold for Upside",
+};
+
+// Pullback & Assignment Playbook (mentor's Sandwich Method + Pullback Program, within Flywheel caps)
+function PullbackCard({ p }: { p: Pullback }) {
+  if (p.status === "UNAVAILABLE") return null;
+  const d = p.drawdown, m = p.macro;
+  const checks = p.assignment_check ?? [];
+  const calls = p.covered_calls ?? [];
+  return (
+    <>
+      <h2>Pullback &amp; Assignment Playbook</h2>
+      <p className="cashrule">
+        Assignment is the middle of the wheel: pick a path, sell calls on top, add puts underneath only on red days and only within caps.
+      </p>
+      <section className="card">
+        <div className="regime">
+          <div>
+            <span className="label">Market (QQQ vs 52-week high)</span>
+            {d?.status === "OK" ? (
+              <div>
+                <strong className={d.bucket === "none" ? "text-pass" : "text-warn"}>
+                  {d.drawdown_pct}% · {d.bucket === "none" ? "No pullback" : d.bucket?.toUpperCase()}
+                </strong>
+                {d.core_only && <> <span className="pill pill-action">Core-only entries</span></>}
+                {d.bucket_frequency && <div className="sub muted">History: {d.bucket_frequency}</div>}
+              </div>
+            ) : <div className="muted">unavailable</div>}
+          </div>
+          <div>
+            <span className="label">Macro regime (rates + unemployment)</span>
+            {m?.status === "OK" ? (
+              <div>
+                <span className={`pill ${STATUS_PILL[m.regime ?? ""] ?? "pill-watch"}`}>{m.regime}</span>{" "}
+                <span className="muted">
+                  Fed funds {m.fed_funds}% ({(m.fed_funds_12m_change ?? 0) >= 0 ? "+" : ""}{m.fed_funds_12m_change} over 12m) ·
+                  unemployment {m.unemployment}% ({(m.unemployment_3m_vs_12m_low ?? 0) >= 0 ? "+" : ""}{m.unemployment_3m_vs_12m_low} vs 12m low)
+                </span>
+              </div>
+            ) : <div className="muted">unavailable</div>}
+          </div>
+        </div>
+      </section>
+
+      {checks.length > 0 && (
+        <>
+          <h3>If in-the-money puts are assigned</h3>
+          <div className="card list">
+            {checks.map((c, i) => (
+              <div className="li" key={i}>
+                <span className={`pill ${STATUS_PILL[c.status]}`}>{STATUS_TEXT[c.status]}</span>
+                <span className="li-check" style={{ flex: 1 }}>
+                  <strong>{c.ticker}</strong> · {c.itm_puts.join(", ")}
+                </span>
+                <span>{c.shares_if_assigned} sh · {money(c.cost_if_assigned)}</span>
+                <span className={c.room_for_puts < 0 ? "text-fail" : "muted"}>
+                  {c.status === "INCOME_FIRST_ONLY"
+                    ? "no adds: decaying fund, sell calls right away if assigned"
+                    : c.room_for_puts < 0 ? `${money(-c.room_for_puts)} over cap` : `${money(c.room_for_puts)} room to add`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {calls.length > 0 && (
+        <>
+          <h3>Covered calls: when to sell (by path)</h3>
+          <div className="card list">
+            {calls.map((c, i) => (
+              <div className="li" key={i}>
+                <span className={`pill ${STATUS_PILL[c.action]}`}>{STATUS_TEXT[c.action]}</span>
+                <span className="li-check" style={{ flex: 1 }}>
+                  <strong>{c.ticker}</strong> · {c.shares} sh · {PATH_TEXT[c.path]} <span className="muted">— {c.why}</span>
+                </span>
+                {c.adjusted_basis != null && c.price != null && (
+                  <span className="muted">
+                    basis {money(c.adjusted_basis)} vs {money(c.price)}
+                    {c.basis_gap != null && c.basis_gap > 0
+                      ? ` · ~${c.months_to_breakeven_at_10pct} mo to break-even at 10%/mo`
+                      : " · above basis"}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  );
 }
 
 function cashState(cashPct: number): string {
@@ -153,6 +256,8 @@ export default async function Page() {
       </section>
       <p className="cashrule">{cashState(s.cash_reserve_pct)}</p>
 
+      {row.payload.pullback && <PullbackCard p={row.payload.pullback} />}
+
       {/* 5% monthly pace + deployment */}
       {pacing && (
         <section className="card pace">
@@ -257,8 +362,8 @@ export default async function Page() {
             </div>
             <div className="row-between">
               <span className="muted">Concentration</span>
-              <span className={a.concentration_pct && a.concentration_pct > 0.5 ? "text-fail" : ""}>
-                {pct(a.concentration_pct)} <span className="muted">/ 50% cap</span>
+              <span className={a.concentration_pct && a.concentration_pct > 0.75 ? "text-fail" : ""}>
+                {pct(a.concentration_pct)} <span className="muted">/ 75% cap</span>
               </span>
             </div>
           </div>
