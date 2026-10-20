@@ -480,6 +480,12 @@ def main():
     except Exception as e:
         print(f"[WARN] program recovery skipped: {e}")
 
+    try:
+        import pullback   # drawdown bucket, macro regime, assignment check, covered-call timing
+        payload["pullback"] = pullback.build(snap)
+    except Exception as e:
+        payload["pullback"] = {"status": "UNAVAILABLE", "error_type": type(e).__name__}
+
     if args.save:
         STATE_DIR.mkdir(exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d_%H%M")
@@ -497,6 +503,9 @@ def main():
         print(json.dumps(payload, indent=2, default=str))
     else:
         print(render(snap, checks, flags))
+        if payload["pullback"].get("status") != "UNAVAILABLE":
+            import pullback
+            print(pullback.render(payload["pullback"]))
 
 
 if __name__ == "__main__":

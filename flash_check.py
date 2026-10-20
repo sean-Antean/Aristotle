@@ -481,6 +481,15 @@ def flash_check(symbol, dte=None):
     # Gate: universe
     if tier_universe == "OTHER":
         fail(f"{symbol} not on Core/Flex watchlist (needs explicit approval)")
+    # Gate: pullback core-only (gameplan.correction_protocol.pullback_core_only)
+    if tier_universe == "FLEX" and gp.get("correction_protocol", {}).get("pullback_core_only"):
+        try:
+            import pullback
+            dd = pullback.qqq_drawdown(gp)
+            if dd.get("core_only"):
+                fail(f"Pullback mode ({dd['bucket']}, QQQ {dd['drawdown_pct']:+.1f}% from high): new entries are Core only")
+        except Exception:
+            pass
     # Gate: red-day requirement
     intraday = None
     if setup == "NO_TRADE":
